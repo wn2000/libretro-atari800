@@ -71,6 +71,11 @@ extern int keyboard_type;
 extern int pushi;  // gui mouse btn
 int gmx,gmy; //gui mouse
 int mouse_wu=0,mouse_wd=0;
+int retro_mouse_l = 0;
+int retro_mouse_r = 0;
+int16_t retro_mouse_delta_x = 0;
+int16_t retro_mouse_delta_y = 0;
+
 //KEYBOARD
 char Key_Sate[512];
 char Key_Sate2[512];
@@ -409,11 +414,6 @@ int Retro_PollEvent()
       }
    }
 
-   int mouse_l;
-   int mouse_r;
-   int16_t mouse_x,mouse_y;
-   mouse_x=mouse_y=0;
-
    if(SHOWKEY==-1 && pauseg==0)Process_key();
 
    //Joy mode
@@ -496,15 +496,15 @@ int Retro_PollEvent()
          return 1;
 
       if (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
-         mouse_x += PAS;
+         retro_mouse_delta_x += PAS;
       if (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
-         mouse_x -= PAS;
+         retro_mouse_delta_x -= PAS;
       if (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
-         mouse_y += PAS;
+         retro_mouse_delta_y += PAS;
       if (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
-         mouse_y -= PAS;
-      mouse_l = (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_A)) ? 1 : 0;
-      mouse_r = (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_B)) ? 1 : 0;
+         retro_mouse_delta_y -= PAS;
+      retro_mouse_l = (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_A)) ? 1 : 0;
+      retro_mouse_r = (joypad_bits[0] & (1 << RETRO_DEVICE_ID_JOYPAD_B)) ? 1 : 0;
 
       PAS=SAVPAS;
 
@@ -512,36 +512,36 @@ int Retro_PollEvent()
    }
    else
    {
-      mouse_wu   = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP);
-      mouse_wd   = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN);
-      mouse_x    = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-      mouse_y    = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
-      mouse_l    = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
-      mouse_r    = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT);
+      mouse_wu = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP);
+      mouse_wd = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN);
+      retro_mouse_delta_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+      retro_mouse_delta_y = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+      retro_mouse_l = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
+      retro_mouse_r = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT);
    }
 
    static int mmbL=0,mmbR=0;
 
-   if(mmbL==0 && mouse_l)
+   if(mmbL==0 && retro_mouse_l)
    {
       mmbL=1;
       pushi=1;
       touch=1;
    }
-   else if(mmbL==1 && !mouse_l)
+   else if(mmbL==1 && !retro_mouse_l)
    {
       mmbL=0;
       pushi=0;
       touch=-1;
    }
 
-   if(mmbR==0 && mouse_r)
+   if(mmbR==0 && retro_mouse_r)
       mmbR=1;
-   else if(mmbR==1 && !mouse_r)
+   else if(mmbR==1 && !retro_mouse_r)
       mmbR=0;
 
-   gmx += mouse_x;
-   gmy += mouse_y;
+   gmx += retro_mouse_delta_x;
+   gmy += retro_mouse_delta_y;
    if(gmx<0)
       gmx = 0;
    if(gmx>retrow-1)

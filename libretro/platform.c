@@ -53,14 +53,20 @@ int PLATFORM_kbd_joy_0_enabled = TRUE;	/* enabled by default, doesn't hurt */
 int PLATFORM_kbd_joy_1_enabled = TRUE;//FALSE;	/* disabled, would steal normal keys */
 int PLATFORM_kbd_joy_2_enabled = TRUE;//FALSE;	/* disabled, would steal normal keys */
 int PLATFORM_kbd_joy_3_enabled = TRUE;//FALSE;	/* disabled, would steal normal keys */
+
+// Defined in core-mapper.c
 extern unsigned char MXjoy[4]; // joy
 extern int mbt[16];
 extern int retro_sound_finalized;
+extern int retro_mouse_l, retro_mouse_r;
+extern int16_t retro_mouse_delta_x, retro_mouse_delta_y;
 
 int CURRENT_TV=Atari800_TV_PAL;
 int ToggleTV=0;
 
 static UWORD *palette = NULL;
+
+static void RETRO_INPUT_Mouse();
 
 int skel_main(int argc, char **argv)
 {
@@ -79,7 +85,7 @@ int skel_main(int argc, char **argv)
 	/* main loop */
 	for (;;) {
 		INPUT_key_code = PLATFORM_Keyboard();
-		//SDL_INPUT_Mouse();
+		RETRO_INPUT_Mouse();
 		Atari800_Frame();
 		if (Atari800_display_screen)
 			PLATFORM_DisplayScreen();
@@ -126,13 +132,14 @@ int retro_InitGraphics(void)
 
 int PLATFORM_Initialise(int *argc, char *argv[])
 {
-
 	Log_print("Core init");
 
 	retro_InitGraphics();
 
 	Devices_enable_h_patch = FALSE;
-	INPUT_direct_mouse = TRUE;
+	INPUT_direct_mouse = FALSE;
+	INPUT_mouse_mode = INPUT_MOUSE_PAD;
+	INPUT_mouse_speed = 100;
 
 	return TRUE;
 }
@@ -831,6 +838,13 @@ int PLATFORM_TRIG(int num)
 	}
 
 	return 0x01;
+}
+
+static void RETRO_INPUT_Mouse()
+{
+	INPUT_mouse_delta_x = retro_mouse_delta_x;
+	INPUT_mouse_delta_y = retro_mouse_delta_y;
+	INPUT_mouse_buttons = (retro_mouse_l ? 1 : 0) | (retro_mouse_r ? 2 : 0);
 }
 
 
